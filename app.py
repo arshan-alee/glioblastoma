@@ -20,6 +20,10 @@ def upload_file():
 def visualize():
     return render_template('visualize.html')
 
+@app.route('/faqs.html')
+def blog():
+    return render_template('faqs.html')
+
 @app.route('/check_directory')
 def check_directory():
     try:
