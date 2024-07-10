@@ -244,6 +244,10 @@
       document.getElementById('selected-file').textContent = fileName;
     });
 
+    document.querySelector('.show-visualize-button').addEventListener('click', function() {
+      window.location.href = "{{ url_for('visualize') }}";
+  });
+
     document.getElementById('upload-form').addEventListener('submit', async function(event) {
       event.preventDefault();
       const formData = new FormData();
