@@ -101,12 +101,12 @@
 
     .show-visualize-button{
       display: none;
-  }
+    }
 
-  .upload-section {
-    margin-top: 9rem !important;
-    margin-bottom: 9rem !important;
-  }
+     .upload-section {
+       margin-top: 9rem !important;
+       margin-bottom: 9rem !important;
+    }
   
     .upload-section label {
       border: 2px dashed #cbd5e0;
@@ -123,18 +123,25 @@
       margin-right: 1rem;
     }
     
+    .upload-section label:hover svg {
+      transform: scale(1.1);
+    }
+
     .color-bands {
       background: linear-gradient(to right, green, yellow, red);
       height: 20px;
       border-radius: 0.25rem;
     }
-
-    .upload-section label:hover svg {
-      transform: scale(1.1);
+    .rendered-section .show-visualize-button {
+      margin-top: 1rem;
     }
 
-    .rendered-section {
-      height: 100%; /* Ensure the card takes the full height */
+    .loadingSpinner {
+      display: none; 
+      top: 0; 
+      left: 0; 
+      background-color: rgba(0, 0, 0, 0.5); 
+      z-index: 1050;
     }
 
   </style>
@@ -157,8 +164,6 @@
     </div>
   </nav>
   
-  
-
   <!-- Hero section with video background -->
   <section class="hero-section">
     <!-- Video background -->
@@ -180,13 +185,13 @@
     </div>
   </section>
 
-  <!-- Upload file section -->
-  <section class="upload container my-5 " id="upload-section">
+<!-- Upload file section -->
+<section class="upload container my-5" id="upload-section">
   <div class="row">
     <!-- Upload file section -->
     <div class="col-md-6 d-flex justify-content-center align-items-center">
-      <div class="card text-light upload-section bg-transparent border-0">
-        <div class="card-body text-center">
+      <div class="card text-light upload-section bg-transparent border-0" style="height: 300px;">
+        <div class="card-body text-center d-flex flex-column justify-content-between">
           <h1 class="card-title">Upload new NIfTI File</h1>
           <form id="upload-form" enctype="multipart/form-data">
             <div class="mb-3">
@@ -203,7 +208,6 @@
           </form>
           <div class="selected-file mt-2" id="selected-file">No file selected</div>
         </div>
-         
       </div>
     </div>
     
@@ -215,18 +219,23 @@
             <h1 class="card-title">----- Accuracy -----</h1>
             <div class="color-bands" id="color-bands"></div>
             <div class="prediction-percentage mt-2" id="prediction-percentage"></div>
-          </div>
-          <div class="d-flex justify-content-center mt-auto">
-            <button class="show-visualize-button btn btn-primary">Visualize</button>
+            <div class="d-flex justify-content-center mt-3"> <!-- Adjusted margin here -->
+              <button class="show-visualize-button btn btn-primary">Visualize</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    
   </div>
 </section>
+    
+<div class=" loadingSpinner justify-content-center align-items-center position-fixed w-100 h-100">
+  <div  class="spinner-border text-light" role="status">
+    <span class="sr-only"></span>
+  </div>
+</div>
   
-  <script>
+<script>
     function setActive(link) {
       var links = document.querySelectorAll('.nav-link');
       links.forEach(function(element) {
@@ -248,44 +257,52 @@
       window.location.href = "{{ url_for('visualize') }}";
   });
 
-    document.getElementById('upload-form').addEventListener('submit', async function(event) {
-      event.preventDefault();
-      const formData = new FormData();
-      const fileInput = document.getElementById('file');
-      const file = fileInput.files[0];
-      formData.append('file', file);
-
-      try {
-        const response = await fetch('/predict', {
-          method: 'POST',
-          body: formData
-        });
-
-        const result = await response.json();
-        const renderedSection = document.getElementById('rendered-section');
-        const colorBandsDiv = document.getElementById('color-bands');
-        const predictionPercentageDiv = document.getElementById('prediction-percentage');
-
-        if (response.ok) {
-          const prediction = result.prediction[0]; // Assuming the result structure is consistent
-          const percentage = Math.round(prediction * 100);
-
-          // Update color bands
-          colorBandsDiv.style.width = `${percentage}%`;
-
-          // Update prediction percentage text
-          predictionPercentageDiv.textContent = `${percentage}%`;
-
-          document.querySelector('.show-visualize-button').style.display = 'block';
-        } else {
-          renderedSection.innerHTML = '<h1>----- Accuracy -----</h1><pre>Error: ' + JSON.stringify(result, null, 2) + '</pre>';
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        const renderedSection = document.getElementById('rendered-section');
-        renderedSection.innerHTML = '<h1>----- Accuracy -----</h1><pre>Error: ' + error.message + '</pre>';
+  document.getElementById('upload-form').addEventListener('submit', async function(event) {
+    event.preventDefault();
+  
+    // Show the spinner
+    document.querySelector('.loadingSpinner').style.display = 'flex';
+  
+    const formData = new FormData();
+    const fileInput = document.getElementById('file');
+    const file = fileInput.files[0];
+    formData.append('file', file);
+  
+    try {
+      const response = await fetch('/predict', {
+        method: 'POST',
+        body: formData
+      });
+  
+      const result = await response.json();
+      const renderedSection = document.getElementById('rendered-section');
+      const colorBandsDiv = document.getElementById('color-bands');
+      const predictionPercentageDiv = document.getElementById('prediction-percentage');
+  
+      if (response.ok) {
+        const prediction = result.prediction[0]; // Assuming the result structure is consistent
+        const percentage = Math.round(prediction * 100);
+  
+        // Update color bands
+        colorBandsDiv.style.width = `${percentage}%`;
+  
+        // Update prediction percentage text
+        predictionPercentageDiv.textContent = `${percentage}%`;
+  
+        document.querySelector('.show-visualize-button').style.display = 'block';
+      } else {
+        renderedSection.innerHTML = '<h1>----- Accuracy -----</h1><pre>Error: ' + JSON.stringify(result, null, 2) + '</pre>';
       }
-    });
+    } catch (error) {
+      console.error('Error:', error);
+      const renderedSection = document.getElementById('rendered-section');
+      renderedSection.innerHTML = '<h1>----- Accuracy -----</h1><pre>Error: ' + error.message + '</pre>';
+    } finally {
+      // Hide the spinner after 5 seconds
+      document.querySelector('.loadingSpinner').style.display = 'none';
+    }
+  });
+  
   </script>
 </body>
 </html>
