@@ -21,7 +21,7 @@ def visualize():
     return render_template('visualize.html')
 
 @app.route('/faqs.html')
-def blog():
+def faqs():
     return render_template('faqs.html')
 
 @app.route('/check_directory')
